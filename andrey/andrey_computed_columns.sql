@@ -7,14 +7,13 @@ CREATE FUNCTION fnCalculateEmployeeTotalComp(@EmployeeID INT)
       FROM tblEMPLOYEE E
       JOIN tblEMPLOYEE_POSITION EP ON EP.EmployeeID = E.EmployeeID
       JOIN tblEMP_SHIFT_STATUS ESS ON ESS.EmpPosID = EP.EmpPosID
-      JOIN tblSTATUS ST ON ST.ShiftStatusID = ESS.StatusID
+      JOIN tblSTATUS ST ON ST.StatusID = ESS.StatusID
       JOIN tblSHIFT S ON S.ShiftID = ESS.ShiftID
       JOIN tblCOMPENSATION C ON C.CompID = S.CompID
       JOIN tblMONTH M ON M.MonthID = S.MonthID
       JOIN tblDAY D ON D.DayID = S.DayID
       WHERE E.EmployeeID = @EmployeeID
-        -- TODO: check if this is the latest ESS
-        AND ST.StatusTitle = 'Active'
+        AND ST.StatusTitle = 'Worked'
         AND M.MonthName <= MONTH(GETDATE())
         AND D.DayName < DAY(GETDATE())
         AND S.[YEAR] <= YEAR(GETDATE()))
@@ -22,7 +21,7 @@ CREATE FUNCTION fnCalculateEmployeeTotalComp(@EmployeeID INT)
 GO
 
 ALTER TABLE tblEMPLOYEE
-  ADD (dbo.fnCalculateEmployeeTotalComp(EmployeeID)) AS TotalComp
+  ADD TotalComp AS (dbo.fnCalculateEmployeeTotalComp(EmployeeID))
 GO
 
 -- Write the user-defined function to enable a computed column calculating the duration of a single shift.
@@ -77,5 +76,5 @@ CREATE FUNCTION fnGetDuration(@ShiftID INT)
 GO
 
 ALTER TABLE tblSHIFT
-  ADD (dbo.fnGetDuration(ShiftID)) AS DurationHours
+  ADD DurationHours AS (dbo.fnGetDuration(ShiftID))
 GO
