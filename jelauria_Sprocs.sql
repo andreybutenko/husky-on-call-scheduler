@@ -1,3 +1,4 @@
+-- Stored procedure to generate a new pronoun set
 CREATE PROCEDURE jelauria_INSERT_tblPRONOUN_SET_tblPPS
 @SetName varchar(50),
 @SetDescr varchar(500),
@@ -30,7 +31,8 @@ VALUES (@PS_ID, @P1_ID),
        (@PS_ID, @P5_ID)
 END TRANSACTION T2
 -- =====================================================================================================================
-CREATE PROCEDURE jelauria_ASSIGN_EXISTING_SHIFT
+-- Stored procedure to mark that a given shift has already passed
+CREATE PROCEDURE jelauria_PASSED_SHIFT
 @PosName varchar(50),
 @LocName varchar(50),
 @QName varchar(10),
