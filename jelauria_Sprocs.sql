@@ -33,7 +33,6 @@ END TRANSACTION T2
 -- =====================================================================================================================
 -- Stored procedure to mark that a given shift has already passed
 CREATE PROCEDURE jelauria_PASSED_SHIFT
-@PosName varchar(50),
 @LocName varchar(50),
 @QName varchar(10),
 @MName varchar(10),
@@ -43,25 +42,24 @@ CREATE PROCEDURE jelauria_PASSED_SHIFT
 @STypeName varchar(50)
 AS
 
-DECLARE @E_ID int, @P_ID int, @L_ID int, @Q_ID int, @M_ID int, @D_ID int, @BH_ID int, @EH_ID int, @ST_ID int,
-@S_ID int, @STAT_ID int, @DU datetime
+DECLARE @S_ID int, @STAT_ID int, @EP_ID int, @DU datetime
 SET @STAT_ID = (SELECT STA.ShiftStatusID FROM tblSTATUS STA WHERE StatusTitle = 'Passed')
-SET @P_ID = (SELECT P.PositionID FROM tblPOSITION P WHERE P.PositionName = @PosName)
-SET @L_ID = (SELECT  L.LocationID FROM tblLOCATION L WHERE L.LocationName = @LocName)
-SET @Q_ID = (SELECT  Q.QuarterID FROM tblQUARTER Q WHERE Q.QuartName= @QName)
-SET @M_ID = (SELECT  M.MonthID FROM tblMONTH M WHERE M.MonthName = @MName)
-SET @D_ID = (SELECT  D.DayID FROM tblDAY D WHERE D.DayName= @DName)
-SET @BH_ID = (SELECT  H.HourID FROM tblHOUR H WHERE H.HourName = @BegHour)
-SET @EH_ID = (SELECT  H2.HourID FROM tblHOUR H2 WHERE H2.HourName = @EndHour)
-SET @ST_ID = (SELECT  ST.ShiftTypeID FROM tblSHIFT_TYPE ST WHERE ST.ShiftTypeName = @STypeName)
-SET @S_ID = (SELECT S.ShiftID FROM tblSHIFT S WHERE LocationID  = @L_ID
-                                                AND QuarterID = @Q_ID
-                                                AND MonthID = @M_ID
-                                                AND DayID = @D_ID
-                                                AND BeginHourID = @BH_ID
-                                                AND EndHourID = @EH_ID
-                                                AND ShiftTypeID = @ST_ID)
-SET @E_ID = (SELECT TOP 1 EP.EmployeeID FROM tblEMPLOYEE_POSITION EP
+SET @S_ID = (SELECT tS.ShiftID FROM tblSHIFT tS
+    JOIN tblLOCATION tL ON tS.LocationID = tL.LocationID
+    JOIN tblSHIFT_TYPE ST ON tS.ShiftTypeID = ST.ShiftTypeID
+    JOIN tblQUARTER tQ on tS.QuarterID = tQ.QuarterID
+    JOIN tblMONTH tM on tS.MonthID = tM.MonthID
+    JOIN tblDAY tD on tS.DayID = tD.DayID
+    JOIN tblHOUR tH on tS.BeginHourID = tH.HourID
+    JOIN tblHOUR tH2 on tS.EndHourID = tH2.HourID
+    WHERE tL.LocationName = @LocName
+        AND tQ.QuartName= @QName
+        AND tM.MonthName = @MName
+        AND tD.DayName= @DName
+        AND tH.HourName = @BegHour
+        AND tH2.HourName = @EndHour
+        AND ST.ShiftTypeName = @STypeName)
+SET @EP_ID = (SELECT TOP 1 EP.EmpPosID FROM tblEMPLOYEE_POSITION EP
     JOIN tblEMP_SHIFT_STATUS tESS on EP.EmpPosID = tESS.EmpPosID
     JOIN tblSTATUS tS on tESS.StatusID = tS.ShiftStatusID
     WHERE tESS.ShiftID = @S_ID
@@ -71,7 +69,7 @@ SET @DU = (SELECT GETDATE())
 
 BEGIN TRANSACTION T3
 INSERT INTO tblEMP_SHIFT_STATUS(StatusID, EmpPosID, ShiftID, DateUpdated)
-VALUES (@STAT_ID, @E_ID, @S_ID, @DU)
+VALUES (@STAT_ID, @EP_ID, @S_ID, @DU)
 END TRANSACTION T3
 
 
