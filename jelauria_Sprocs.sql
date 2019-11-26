@@ -31,7 +31,7 @@ VALUES (@PS_ID, @P1_ID),
        (@PS_ID, @P5_ID)
 END TRANSACTION T2
 -- =====================================================================================================================
--- Stored procedure to mark that a given shift has already passed
+-- Stored procedure to mark that a given shift has already been worked
 CREATE PROCEDURE jelauria_PASSED_SHIFT
 @LocName varchar(50),
 @QName varchar(10),
@@ -43,7 +43,7 @@ CREATE PROCEDURE jelauria_PASSED_SHIFT
 AS
 
 DECLARE @S_ID int, @STAT_ID int, @EP_ID int, @DU datetime
-SET @STAT_ID = (SELECT STA.ShiftStatusID FROM tblSTATUS STA WHERE StatusTitle = 'Passed')
+SET @STAT_ID = (SELECT STA.ShiftStatusID FROM tblSTATUS STA WHERE StatusTitle = 'Worked')
 SET @S_ID = (SELECT tS.ShiftID FROM tblSHIFT tS
     JOIN tblLOCATION tL ON tS.LocationID = tL.LocationID
     JOIN tblSHIFT_TYPE ST ON tS.ShiftTypeID = ST.ShiftTypeID
