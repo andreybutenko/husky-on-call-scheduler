@@ -13,8 +13,8 @@ CREATE PROCEDURE swapShifts
 @Location2Name varchar(50),
 @Quarter1Name varchar(10),
 @Quarter2Name varchar(10),
-@Month1Name varchar(10),
-@Month2Name varchar(10),
+@Month1Num varchar(2),
+@Month2Num varchar(2),
 @Day1Num int,
 @Day2Num int,
 @Begin1Hour int,
@@ -25,6 +25,7 @@ CREATE PROCEDURE swapShifts
 @Year2 int
 
 AS BEGIN
+
 DECLARE @EmpPos1ID INT = (SELECT ep.PositionID
 						FROM tblEMPLOYEE e
 							JOIN tblEMPLOYEE_POSITION ep ON ep.EmployeeID = e.EmployeeID
@@ -56,7 +57,7 @@ DECLARE @Shift1ID INT = (SELECT s.ShiftID
 						WHERE l.LocationName = @Location1Name
 							AND s.[YEAR] = @Year1
 							AND q.QuartName = @Quarter1Name
-							AND m.[MonthName] = @Month1Name
+							AND m.MonthNum = @Month1Num
 							AND d.[DayName] = @Day1Num
 							AND h1.HourName = @Begin1Hour
 							AND h2.HourName = @End1Hour)
@@ -72,7 +73,7 @@ DECLARE @Shift2ID INT = (SELECT s.ShiftID
 						WHERE l.LocationName = @Location2Name
 							AND s.[YEAR] = @Year2
 							AND q.QuartName = @Quarter2Name
-							AND m.[MonthName] = @Month2Name
+							AND m.MonthNum = @Month2Num
 							AND d.[DayName] = @Day2Num
 							AND h1.HourName = @Begin2Hour
 							AND h2.HourName = @End2Hour)
@@ -87,10 +88,10 @@ DECLARE @AssignedStatusID INT = (SELECT StatusID
 
 BEGIN TRAN T1
 	INSERT INTO tblEMP_SHIFT_STATUS(StatusID, EmpPosID, ShiftID, DateUpdated)
-	VALUES (@SwapStatusID, @EmpPos1ID, @ShiftID, GETDATE())
+	VALUES (@SwapStatusID, @EmpPos1ID, @Shift1ID, GETDATE())
 
 	INSERT INTO tblEMP_SHIFT_STATUS(StatusID, EmpPosID, ShiftID, DateUpdated)
-	VALUES (@AssignedStatusID, @EmpPos2ID, @ShiftID, GETDATE())
+	VALUES (@AssignedStatusID, @EmpPos2ID, @Shift1ID, GETDATE())
 
 	INSERT INTO tblEMP_SHIFT_STATUS(StatusID, EmpPosID, ShiftID, DateUpdated)
 	VALUES (@SwapStatusID, @EmpPos1ID, @Shift2ID, GETDATE())
