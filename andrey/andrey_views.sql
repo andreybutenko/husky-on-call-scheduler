@@ -1,6 +1,6 @@
 -- Find the campus that has the highest number of shifts worked by employees that identify as a gender other than male or female
 CREATE VIEW abutenkoFindCampusMostShiftsEmployeesNonBinary (
-  SELECT L.LocationName, COUNT(DISTINCT S.ShiftID) AS NumShiftsWorkedByNonBinaryEmployees
+  SELECT TOP 1 L.LocationName, COUNT(DISTINCT S.ShiftID) AS NumShiftsWorkedByNonBinaryEmployees
     FROM tblLOCATION L
     JOIN tblLOCATION_TYPE LT ON LT.LocationTypeID = L.LocationTypeID
     JOIN tblSHIFT S ON S.LocationID = L.LocationID
