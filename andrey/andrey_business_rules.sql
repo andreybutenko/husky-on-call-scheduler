@@ -1,5 +1,5 @@
 -- Enforce the business rule to prevent employees from taking a shift that they are not qualified for.
-CREATE FUNCTION fnEmployeesMustBeQualifiedForShift()
+CREATE FUNCTION FN_abutenko_EmployeesMustBeQualifiedForShift()
   RETURNS INT
   AS
   BEGIN
@@ -34,12 +34,12 @@ CREATE FUNCTION fnEmployeesMustBeQualifiedForShift()
 GO
 
 ALTER TABLE tblEMP_SHIFT_STATUS
-  ADD CONSTRAINT CK_EmployeesMustBeQualifiedForShift
-  CHECK (dbo.fnEmployeesMustBeQualifiedForShift() = 0)
+  ADD CONSTRAINT CK_abutenko_EmployeesMustBeQualifiedForShift
+  CHECK (dbo.FN_abutenko_EmployeesMustBeQualifiedForShift() = 0)
 GO
 
 -- Enforce the business rule that an employee cannot be assigned to more than one active shift for the same time frame
-CREATE FUNCTION fnEmployeesCannotHaveConflictingAssignments()
+CREATE FUNCTION FN_abutenko_EmployeesCannotHaveConflictingAssignments()
   RETURNS INT
   AS
   BEGIN
@@ -66,6 +66,6 @@ CREATE FUNCTION fnEmployeesCannotHaveConflictingAssignments()
 GO
 
 ALTER TABLE tblEMP_SHIFT_STATUS
-  ADD CONSTRAINT CK_EmployeesCannotHaveConflictingAssignments
-  CHECK (dbo.fnEmployeesCannotHaveConflictingAssignments() = 0)
+  ADD CONSTRAINT CK_abutenko_EmployeesCannotHaveConflictingAssignments
+  CHECK (dbo.FN_abutenko_EmployeesCannotHaveConflictingAssignments() = 0)
 GO

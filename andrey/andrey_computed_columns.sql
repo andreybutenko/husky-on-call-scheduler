@@ -1,5 +1,5 @@
 -- Write the user-defined function to enable a computed column calculate the total amount of compensation an employee has earned.
-CREATE FUNCTION fnCalculateEmployeeTotalComp(@EmployeeID INT)
+CREATE FUNCTION FN_abutenko_CalculateEmployeeTotalComp(@EmployeeID INT)
   RETURNS MONEY
   AS
   BEGIN
@@ -21,11 +21,11 @@ CREATE FUNCTION fnCalculateEmployeeTotalComp(@EmployeeID INT)
 GO
 
 ALTER TABLE tblEMPLOYEE
-  ADD TotalComp AS (dbo.fnCalculateEmployeeTotalComp(EmployeeID))
+  ADD TotalComp AS (dbo.FN_abutenko_CalculateEmployeeTotalComp(EmployeeID))
 GO
 
 -- Write the user-defined function to enable a computed column calculating the duration of a single shift.
-CREATE FUNCTION fnGetDuration(@ShiftID INT)
+CREATE FUNCTION FN_abutenko_GetDuration(@ShiftID INT)
   RETURNS INT
   AS
   BEGIN
@@ -76,5 +76,5 @@ CREATE FUNCTION fnGetDuration(@ShiftID INT)
 GO
 
 ALTER TABLE tblSHIFT
-  ADD DurationHours AS (dbo.fnGetDuration(ShiftID))
+  ADD DurationHours AS (dbo.FN_abutenko_GetDuration(ShiftID))
 GO

@@ -1,5 +1,5 @@
 -- Write the stored procedure to assign an employee to an existing shift.
-CREATE PROCEDURE uspAssignEmployeeShift
+CREATE PROCEDURE usp_abutenko_AssignEmployeeShift
   @Fname VARCHAR(30),
   @Lname VARCHAR(30),
   @NetID VARCHAR(100),
@@ -35,7 +35,7 @@ CREATE PROCEDURE uspAssignEmployeeShift
 GO
 
 -- Write the stored procedure to create a new position.
-CREATE PROCEDURE uspInsertPosition
+CREATE PROCEDURE usp_abutenko_InsertPosition
   @PositionName VARCHAR(50),
   @PositionDescr VARCHAR(500),
   @PositionTypeName VARCHAR(50)
