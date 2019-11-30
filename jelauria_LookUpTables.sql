@@ -11,7 +11,7 @@ GO
 INSERT INTO tblLOCATION_TYPE(LocationTypeID, LocationName, LocationDescription)
 VALUES (1, 'Residence Hall', 'Buildings that students inhabit on campus during the traditional academic year'),
        (2, 'Apartment', 'Apartments close to campus, managed by HFS where students may inhabit during the academic year/year-round'),
-       (3, 'Family Apartment', 'Apartments for students that are married/with children and attend UW full-time'),
+       (3, 'Family Housing', 'Housing for students that are married/with children and attend UW full-time'),
        (4, 'Region', 'A cluster of living spaces in close proximity (ex. South Campus, North Campus, etc.)'),
        (5, 'Campus', 'Entire campuses (ex. UW Seattle, UW Tacoma, UW Bothell)' )
 GO

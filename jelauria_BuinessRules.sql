@@ -36,19 +36,20 @@ RETURNS INT
 AS
 BEGIN
     DECLARE @RET INT = 0
-    IF EXISTS(
-        SELECT tS.ShiftID
-        FROM tblSHIFT tS
-            JOIN tblMONTH tM on tS.MonthID = tM.MonthID
-            JOIN tblDAY tD on tS.DayID = tD.DayID
-            JOIN tblCOMPENSATION tC on tS.CompID = tC.CompID
-        WHERE tM.[MonthName] = 'December'
-            AND (tD.[DayName] = '24' OR tD.[DayName] = '25')
-            AND tC.CompAmount <= 0
-    )
-    BEGIN 
-       SET @RET = 1
-    END
+        IF EXISTS(
+            SELECT tS.ShiftID
+            FROM tblSHIFT tS
+                JOIN tblMONTH tM on tS.MonthID = tM.MonthID
+                JOIN tblDAY tD on tS.DayID = tD.DayID
+                JOIN tblCOMPENSATION tC on tS.CompID = tC.CompID
+            WHERE tM.[MonthName] = 'December'
+                AND (tD.[DayName] = '24' OR tD.[DayName] = '25')
+                AND tC.CompAmount <= 0
+        )
+        BEGIN
+           SET @RET = 1
+        END
+    RETURN @RET
 END
 GO
 

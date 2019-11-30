@@ -4,7 +4,7 @@ RETURNS INT
 AS
 BEGIN
     DECLARE @RET int
-    SET @RET = (SELECT COUNT(tEP.EmpPosID)
+    SET @RET = (SELECT COUNT(DISTINCT tEP.EmpPosID)
         FROM tblGENDER tG
             JOIN tblEMPLOYEE tE on tG.GenderID = tE.GenderID
             JOIN tblEMPLOYEE_POSITION tEP on tE.EmployeeID = tEP.EmployeeID
@@ -13,6 +13,7 @@ BEGIN
         WHERE tPT.PositionTypeName = 'Counselor'
             AND tEP.EndDate IS NULL
             AND tG.GenderID = @PK)
+    RETURN @RET
 END
 GO
 
@@ -37,6 +38,7 @@ BEGIN
         WHERE tST.StatusTitle = 'Worked'
             AND tPT.PositionTypeName = 'RA'
             AND tQ.QuarterID = @PK)
+    RETURN @RET
 END
 GO
 
