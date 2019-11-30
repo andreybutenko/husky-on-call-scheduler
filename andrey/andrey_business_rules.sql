@@ -39,7 +39,6 @@ ALTER TABLE tblEMP_SHIFT_STATUS
 GO
 
 -- Enforce the business rule that an employee cannot be assigned to more than one active shift for the same time frame
--- NEED TO DISCUSS: Currently grouping by month/day/year, but there is an edge case where it is okay to be assigned to weekend daytime and primary/secondary for the same date
 CREATE FUNCTION fnEmployeesCannotHaveConflictingAssignments()
   RETURNS INT
   AS
@@ -53,8 +52,9 @@ CREATE FUNCTION fnEmployeesCannotHaveConflictingAssignments()
         JOIN tblSHIFT S ON S.ShiftID = ESS.ShiftID
         JOIN tblEMPLOYEE_POSITION EP ON EP.EmpPosID = ESS.EmpPosID
         JOIN tblEMPLOYEE E ON E.EmployeeID = EP.EmployeeID
+        JOIN tblHOUR H ON S.EndHourID = H.EndHourID -- Conflicting shifts on the same day will have same EndHour
         WHERE STAT.StatusTitle = 'Assigned'
-        GROUP BY E.EmployeeID, S.MonthID, S.DayID, S.[YEAR]
+        GROUP BY E.EmployeeID, S.MonthID, S.DayID, S.[YEAR], H.HourName
         HAVING COUNT(DISTINCT S.ShiftID) > 1
     )
     BEGIN
