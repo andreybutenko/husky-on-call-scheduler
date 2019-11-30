@@ -11,27 +11,21 @@ CREATE PROCEDURE uspAssignEmployeeShift
   @DayName INT,
   @Hour INT
   AS
-    DECLARE @EmployeeID INT = (SELECT EmployeeID FROM tblEMPLOYEE WHERE Fname = @Fname AND Lname = @Lname AND UWNetID = @NetID)
-    DECLARE @PositionID INT = (SELECT PositionID FROM tblPOSITION WHERE PositionName = @PositionName)
-    DECLARE @ShiftTypeID INT = (SELECT ShiftTypeID FROM tblSHIFT_TYPE WHERE ShiftTypeName = @ShiftTypeName)
-    DECLARE @LocationID INT = (SELECT LocationID FROM tblLOCATION WHERE LocationName = @LocationName)
-    DECLARE @QuarterID INT = (SELECT QuarterID FROM tblQUARTER WHERE QuartName = @QuarterName)
-    DECLARE @MonthID INT = (SELECT MonthID FROM tblMONTH WHERE MonthName = @MonthName)
-    DECLARE @DayID INT = (SELECT DayID FROM tblDAY WHERE DayName = @DayName)
-    
     DECLARE @EmpPosID INT =
       (SELECT EmpPosID
         FROM tblEMPLOYEE_POSITION
-        WHERE EmployeeID = @EmployeeID
-        AND PositionID = @PositionID)
+        WHERE EmployeeID = (SELECT EmployeeID FROM tblEMPLOYEE WHERE Fname = @Fname AND Lname = @Lname AND UWNetID = @NetID)
+        AND PositionID = (SELECT PositionID FROM tblPOSITION WHERE PositionName = @PositionName))
+    
     DECLARE @ShiftID INT =
       (SELECT ShiftID
         FROM tblSHIFT
-        WHERE LocationID = @LocationID
-          AND QuarterID = @QuarterID
-          AND MonthID = @MonthID
-          AND DayID = @DayID
-          AND ShiftTypeID = @ShiftTypeID)
+        WHERE LocationID = (SELECT LocationID FROM tblLOCATION WHERE LocationName = @LocationName)
+          AND QuarterID = (SELECT QuarterID FROM tblQUARTER WHERE QuartName = @QuarterName)
+          AND MonthID = (SELECT MonthID FROM tblMONTH WHERE MonthName = @MonthName)
+          AND DayID = (SELECT DayID FROM tblDAY WHERE DayName = @DayName)
+          AND ShiftTypeID = (SELECT ShiftTypeID FROM tblSHIFT_TYPE WHERE ShiftTypeName = @ShiftTypeName))
+    
     DECLARE @StatusID INT = (SELECT StatusID FROM tblSTATUS WHERE StatusTitle = 'Assigned')
 
     BEGIN TRANSACTION T1
