@@ -1,9 +1,8 @@
 USE Proj_B1
-
 /*
 4. Enforce the business rule to prevent new inserts into EMP_SHIFT_STATUS for a shift that has already passed
  */
-CREATE FUNCTION FN_noPassedESS()
+CREATE FUNCTION dorisFN_noPassedESS()
 RETURNS INT
 AS
 BEGIN
@@ -11,17 +10,15 @@ BEGIN
     IF EXISTS (
         SELECT * FROM tblEMP_SHIFT_STATUS ESS
             JOIN tblSTATUS St ON St.StatusID = ESS.StatusID
-            JOIN tblSHIFT S ON S.ShiftID = ESS.ShiftID
             JOIN tblMONTH M ON M.MonthID = S.MonthID
             JOIN tblDay D ON D.DayID = S.DayID
             JOIN tblHOUR H ON H.HourID = S.BeginHourID
-        WHERE (St.StatusTitle = 'Worked') OR
-              (S.[YEAR] < YEAR(GetDate())) OR
-              (S.[YEAR] = YEAR(GetDate() AND M.MonthNum < MONTH(GetDate()))) OR
-              (S.[YEAR] = YEAR(GetDate() AND M.MonthNum = MONTH(GetDate())) AND D.DayName < DAY(GetDate())) OR
-              (S.[YEAR] = YEAR(GetDate() AND M.MonthNum = MONTH(GetDate())) AND D.DayName = DAY(GetDate()) AND
-                H.HourName <= (SELECT DATEPART(HOUR, GetDate())))
-        )
+        WHERE (S.[YEAR] < YEAR(DateUpdated)) OR
+              (S.[YEAR] = YEAR(DateUpdated AND M.MonthNum < MONTH(DateUpdated))) OR
+              (S.[YEAR] = YEAR(DateUpdated AND M.MonthNum = MONTH(DateUpdated)) AND D.DayName < DAY(DateUpdated)) OR
+              (S.[YEAR] = YEAR(DateUpdated AND M.MonthNum = MONTH(DateUpdated)) AND D.DayName = DAY(DateUpdated) AND
+                H.HourName <= (SELECT DATEPART(HOUR, DateUpdated)))
+    )
     BEGIN
         SET @RET = 1
     END
@@ -29,15 +26,16 @@ RETURN @RET
 END
 
 GO
-ALTER TABLE tblSHIFT
+ALTER TABLE tblEMP_SHIFT_STATUS
 ADD CONSTRAINT CK_noPassedESS
 CHECK(dbo.FN_noPassedESS() = 0)
+GO
 
 /*
 5. Enforce the business rule to prevent assigning future shift to an employee_position
 that would not be valid by the time of the shift.
 */
-CREATE FUNCTION FN_noShiftForPassedEmp()
+CREATE FUNCTION dorisFN_noShiftForPassedEmpPos()
 RETURNS INT
 AS
 BEGIN
@@ -61,6 +59,8 @@ RETURN @RET
 END
 
 GO
-ALTER TABLE tblEMPLOYEE_POSITION
+ALTER TABLE tblEMP_SHIFT_STATUS
 ADD CONSTRAINT CK_noShiftForPassedEmp
 CHECK(dbo.FN_noShiftForPassedEmp() = 0)
+
+GO
