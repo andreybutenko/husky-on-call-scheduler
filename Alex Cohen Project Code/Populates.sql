@@ -4,7 +4,8 @@ INSERT INTO tblSTATUS(StatusTitle, StatusDescr)
 VALUES ('Assigned', 'Assigned to work the designated shift at the given date'),
 	('Unavailable', 'Designated as unavailable to work a shift at the given date'),
 	('Swapped', 'Swapped given shift to be assigned by another employee'),
-	('Worked', 'Shift has been worked by the given employee')
+	('Worked', 'Shift has been worked by the given employee'),
+	('Cancelled', 'Shift no longer needs to be worked')
 
 INSERT INTO tblSHIFT_TYPE(ShiftTypeName, ShiftTypeDescr)
 VALUES ('RA Primary', 'Assignment for Primary RA for the given shift'),
