@@ -14,7 +14,7 @@ END
 GO
 
 ALTER TABLE tblEMPLOYEE_POSITION
-ADD TotalShiftsWorked AS dbo.fn_SwapsInQuarter(QuarterID)
+ADD TotalShiftsWorked AS dbo.fn_ShiftsWhileHoldingPosition(EmpPosID)
 GO
 
 -- Write the user-defined function to enable the computed column calculating the number of shifts an employee has swapped away

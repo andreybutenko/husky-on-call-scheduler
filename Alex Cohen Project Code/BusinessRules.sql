@@ -1,14 +1,14 @@
 -- Alex Cohen Husky On Call Scheduler Project SQL Code
 -- Enforce the business rule to prevent redundancy into tblSHIFT (ex. you cannot create a new shift for willow hall for the exact same time slot)
-CREATE FUNCTION fn_noOverlappingShift() 
+CREATE FUNCTION fn_noOverlappingShift()
 RETURNS INT
 AS BEGIN
 	DECLARE @RET INT = 0
-	IF EXISTS (SELECT ShiftID
+	IF EXISTS (SELECT LocationID
 				FROM tblSHIFT
 				GROUP BY LocationID, QuarterID, MonthID, DayID, [YEAR], BeginHourID, EndHourID, ShiftTypeID
-				HAVING COUNT(ShiftID) > 1) 
-	BEGIN 
+				HAVING COUNT(ShiftID) > 1)
+	BEGIN
 		SET @RET = 1
 	END
 	RETURN @RET
@@ -21,7 +21,7 @@ CHECK (dbo.fn_noOverlappingShift() = 0)
 GO
 
 -- Enforce the business rule to prevent new Shifts from being created in the past
-CREATE FUNCTION fn_noNewShiftInPast() 
+CREATE FUNCTION fn_noNewShiftInPast()
 RETURNS INT
 AS BEGIN
 	DECLARE @RET INT = 0
