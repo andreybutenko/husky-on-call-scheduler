@@ -1,4 +1,4 @@
-USE UNIVERSITY
+USE Proj_B1
 /*
 Find the highest paid employee that has also had at least 6 swaps in one of their current positions
 */
