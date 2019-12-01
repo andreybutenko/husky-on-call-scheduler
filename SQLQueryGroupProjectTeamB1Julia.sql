@@ -74,8 +74,10 @@ SET @ST_ID = (SELECT ST.ShiftTypeId
 			  FROM tblSHIFT_TYPE ST
 			  WHERE ST.ShiftTypeName = @ShiftTypeName)
 
+BEGIN TRANSACTION JT1
 INSERT INTO tblSHIFT(ShiftID, LocationID, QuarterID, MonthID, DayID, [YEAR], BeginHourID, EndHourID, CompID, ShiftTypeID)
 VALUES (@S_ID, @LOC_ID, @Q_ID, @MON_ID, @DAY_ID, @Year, @BH_ID, @EH_ID, @COMP_ID, @ST_ID)
+END TRANSACTION JT1
 
 --Write the stored procedure to assign a new pronoun to an existing pronoun set.
 
@@ -92,13 +94,17 @@ SET @PS_ID = (SELECT PS.PronounSetID
 			  FROM tblPRONOUN_SET PS
 			  WHERE PS.PSetName = @PronounSetName)
 
+BEGIN TRANSACTION JT2
 INSERT INTO tblPRONOUN(PronounTitle, PronounsDescr)
 VALUES(@PronounTitle, @PronounDescription)
+END TRANSACTION JT2
 
 SET @PRO_ID = SCOPE_IDENTITY()
 
+BEGIN TRANSACTION JT3
 INSERT INTO tblPRONOUN_PRONOUN_SET(PronounSetID, PronounID)
 VALUES (@PS_ID, @PRO_ID)
+END TRANSACTION JT3
 
 --POPULATE TABLES
 
@@ -110,15 +116,16 @@ VALUES('Winter or Spring Break', 'Compensation given for taking a shift during W
 		('Birthday Comp', 'Compensation given for taking a shift on your birthday', 100),
 		('Finals Week Comp', 'Compensation given for taking a shift during finals week', 125),
 		('No Comp', 'No compensation given', 0)
+GO
 
-
-INSERT INTO tblQUARTER(QuartName, QuartBegin, QuartEnd, QuartDescr)
-VALUES ('Winter', '01-06-2020', '03-13-2020', 'Winter quarter is the quarter in the beginning of the new year - it is usually the second quarter of the new school year - the weather can be rainy or snowy'),
-		 ('Spring', '03-30-2020', '06-05-2020', 'Spring quarter is usually the third quarter of the new school year - the weather is typically rainy and sunnier towards the end'),
-		 ('Summer', '06-22-2020', '08-21-2020', 'Summer quarter is usually a quarter off for students - it has the warmest weather out of all the quarters'),
-		 ('Summer A', '06-22-2020', '07-22-2020', 'Summer A is the quarter during the first half of summer'),
-		 ('Summer B', '07-23-2020', '08-21-2020', 'Summer B is the quarter during the second half of summer'),
-		 ('Fall', '09-30-2020', '12-11-2020', 'Fall quarter is the quarter in the beginning of the new school year - it is usually the first quarter of the new school year - the weather can be warm, rainy, snowy')
+INSERT INTO tblQUARTER(QuartName, QuartDescr)
+VALUES ('Winter', 'Winter quarter is the quarter in the beginning of the new year - it is usually the second quarter of the new school year - the weather can be rainy or snowy'),
+		 ('Spring', 'Spring quarter is usually the third quarter of the new school year - the weather is typically rainy and sunnier towards the end'),
+		 ('Summer', 'Summer quarter is usually a quarter off for students - it has the warmest weather out of all the quarters'),
+		 ('Summer A', 'Summer A is the quarter during the first half of summer'),
+		 ('Summer B', 'Summer B is the quarter during the second half of summer'),
+		 ('Fall', 'Fall quarter is the quarter in the beginning of the new school year - it is usually the first quarter of the new school year - the weather can be warm, rainy, snowy')
+GO
 
 INSERT INTO tblHOUR(HourName)
 VALUES(0), (1), (2), (3), (4), (5), (6), (7), (8), (9), (10), (11), (12), (13), (14), (15), (16), (17), (18), (19), (20), (21), (22), (23)
@@ -155,14 +162,14 @@ BEGIN
 END
 GO
 
-ALTER TABLE tblSHIFT
+ALTER TABLE tblEMP_SHIFT_STATUS
 ADD CONSTRAINT BR_NoShiftsOnBirthday
 CHECK(dbo.BR_NoShiftsOnEmpBirthday( ) = 0)
 GO
 
---Enforce the business rule preventing multiple shifts of the same day/time to be scheduled - one employee per shift
+--Enforce the business rule preventing more than one employee per shift
 
-CREATE FUNCTION dbo.BR_NoScheduleShiftsAtSameTime()
+CREATE FUNCTION dbo.BR_OneEmpPerShift()
 RETURNS INT
 AS 
 BEGIN
@@ -183,6 +190,18 @@ BEGIN
 					ON H2.HourID = S.EndHourID
 				JOIN tblLOCATION L
 					ON L.LocationID = S.LocationID
+				JOIN tblSTATUS ST
+					ON ST.ShiftStatusID = ESS.StatusID
+				JOIN (SELECT EP2.EmployeeID, EP2.PositionID, MAX(ESS2.DateUpdated)
+					  FROM tblEMP_SHIFT_STATUS ESS2
+						JOIN tblSTATUS ST2
+							ON ST2.ShiftStatusID = ESS2.StatusID
+						JOIN tblEMPLOYEE_POSITION EP2
+							ON EP2.EmpPosID = ESS2.EmpPosID
+					  GROUP BY EP2.EmployeeID, EP2.PositionID
+					  HAVING MAX(ESS2.DateUpdated)
+				)
+			  WHERE ST.StatusTitle = 'Assigned'
 			  GROUP BY S.ShiftID, S.QuarterID, S.MonthID, S.DayID, S.BeginHourID, S.EndHourID, S.LocationID
 			  HAVING COUNT(ESS.EmpPosID) > 1
 			)
@@ -193,9 +212,9 @@ BEGIN
 END
 GO
 
-ALTER TABLE tblSHIFT
-ADD CONSTRAINT BR_NoShiftsSameTime
-CHECK(dbo.BR_NoScheduleShiftsAtSameTime( ) = 0)
+ALTER TABLE tblEMP_SHIFT_STATUS
+ADD CONSTRAINT BR_OneEmpPerShift
+CHECK(dbo.BR_OneEmpPerShift( ) = 0)
 GO
 
 --COMPUTED COLUMNS
@@ -203,7 +222,7 @@ GO
 --Write the user-defined function enabling the computed column showing the number of hours an employee has worked within the past 7 days.
 
 CREATE FUNCTION FN_TotalHoursForEmpInCurrentMonth(@PK INT)
-RETURNS NUMERIC(4,2)
+RETURNS INT
 AS 
 BEGIN
 	DECLARE @RET INT = (SELECT SUM(S.DurationHours)
@@ -230,10 +249,10 @@ GO
 --Write the user-defined function enabling the computed column number of employees on each location
 
 CREATE FUNCTION FN_NumEmployeesPerLocation(@PK INT)
-RETURNS NUMERIC(6,2)
+RETURNS INT
 AS 
 BEGIN
-	DECLARE @RET INT = (SELECT L.LocationName, SUM(E.EmployeeID) AS NumEmployees
+	DECLARE @RET INT = (SELECT SUM(E.EmployeeID) AS NumEmployees
 					    FROM tblEMPLOYEE E
 							JOIN tblEMPLOYEE_POSITION EP
 								ON E.EmployeeID = EP.EmployeeID
@@ -243,8 +262,7 @@ BEGIN
 								ON EPS.ShiftID = S.ShiftID
 							JOIN tblLOCATION L
 								ON S.LocationID = L.LocationID
-						GROUP BY L.LocationName
-
+						WHERE L.LocationID = @PK
 						)
 	RETURN @RET
 END
