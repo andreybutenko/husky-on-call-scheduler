@@ -77,7 +77,12 @@ SET @ST_ID = (SELECT ST.ShiftTypeId
 BEGIN TRANSACTION JT1
 INSERT INTO tblSHIFT(ShiftID, LocationID, QuarterID, MonthID, DayID, [YEAR], BeginHourID, EndHourID, CompID, ShiftTypeID)
 VALUES (@S_ID, @LOC_ID, @Q_ID, @MON_ID, @DAY_ID, @Year, @BH_ID, @EH_ID, @COMP_ID, @ST_ID)
-END TRANSACTION JT1
+IF @@ERROR <> 0
+	ROLLBACK TRANSACTION JT1
+ELSE
+COMMIT TRANSACTION JT1
+END
+GO
 
 --Write the stored procedure to assign a new pronoun to an existing pronoun set.
 
@@ -97,15 +102,22 @@ SET @PS_ID = (SELECT PS.PronounSetID
 BEGIN TRANSACTION JT2
 INSERT INTO tblPRONOUN(PronounTitle, PronounsDescr)
 VALUES(@PronounTitle, @PronounDescription)
-END TRANSACTION JT2
+IF @@ERROR <> 0
+	ROLLBACK TRANSACTION JT2
+ELSE
+	COMMIT TRANSACTION JT2
 
 SET @PRO_ID = SCOPE_IDENTITY()
 
 BEGIN TRANSACTION JT3
 INSERT INTO tblPRONOUN_PRONOUN_SET(PronounSetID, PronounID)
 VALUES (@PS_ID, @PRO_ID)
-END TRANSACTION JT3
-
+IF @@ERROR <> 0
+	ROLLBACK TRANSACTION JT3
+ELSE
+	COMMIT TRANSACTION JT3
+END
+GO
 --POPULATE TABLES
 
 --Populate the following look-up tables: tblCOMPENSATION, tblQUARTER, tblHOUR
@@ -191,18 +203,20 @@ BEGIN
 				JOIN tblLOCATION L
 					ON L.LocationID = S.LocationID
 				JOIN tblSTATUS ST
-					ON ST.ShiftStatusID = ESS.StatusID
-				JOIN (SELECT EP2.EmployeeID, EP2.PositionID, MAX(ESS2.DateUpdated)
+					ON ST.StatusID = ESS.StatusID
+				JOIN tblEMPLOYEE_POSITION EP
+					ON ESS.EmpPosID = EP.EmpPosID
+				JOIN (SELECT TOP(1) ESS2.DateUpdated, EP2.PositionID
 					  FROM tblEMP_SHIFT_STATUS ESS2
 						JOIN tblSTATUS ST2
-							ON ST2.ShiftStatusID = ESS2.StatusID
+							ON ST2.StatusID = ESS2.StatusID
 						JOIN tblEMPLOYEE_POSITION EP2
 							ON EP2.EmpPosID = ESS2.EmpPosID
-					  GROUP BY EP2.EmployeeID, EP2.PositionID
-					  HAVING MAX(ESS2.DateUpdated)
-				)
+					  GROUP BY ESS2.DateUpdated, EP2.PositionID
+				) AS SUBQ1
+					ON SUBQ1.PositionID = EP.PositionID
 			  WHERE ST.StatusTitle = 'Assigned'
-			  GROUP BY S.ShiftID, S.QuarterID, S.MonthID, S.DayID, S.BeginHourID, S.EndHourID, S.LocationID
+			  GROUP BY ESS.ESSID
 			  HAVING COUNT(ESS.EmpPosID) > 1
 			)
 	BEGIN
