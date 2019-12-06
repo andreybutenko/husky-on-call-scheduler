@@ -2,7 +2,7 @@
 -- Top 5 position types have at least 1 employee that identifies as non-binary, rank by num shifts worked
 CREATE View topPositionsByShiftWithNonBinary
 AS
-SELECT pt.PositionTypeName, COUNT(ess.ESSID) AS TotalShifts
+SELECT Top(5) pt.PositionTypeName, COUNT(ess.ESSID) AS TotalShifts
 	FROM tblPOSITION p
 		JOIN tblEMPLOYEE_POSITION ep ON ep.PositionID = p.PositionID
 		JOIN tblEMP_SHIFT_STATUS ess ON ess.EmpPosID = ep.EmpPosID
@@ -39,6 +39,6 @@ SELECT pt.PositionTypeName
 				) pt ON pt.PositionTypeID = p.PositionTypeID
 	WHERE l.LocationName = 'Willow Hall'
 	GROUP BY pt.PositionTypeID, pt.PositionTypeName
-	ORDER BY COUNT(ess.ESSID)
+	HAVING COUNT(s.ShiftID) >= 5
 GO
 
